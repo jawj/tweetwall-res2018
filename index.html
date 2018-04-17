@@ -1,0 +1,276 @@
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+	/*
+	we meddle with another domain's <iframe> in a way that isn't usually allowed, 
+	so we need to run Chrome like this:
+
+	Mac:
+	open -a Google\ Chrome --args --disable-web-security --user-data-dir --kiosk "http://tweetwall.res2018.org.uk"
+
+	Windows:
+	"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --user-data-dir --kiosk "http://tweetwall.res2018.org.uk"
+	*/
+</script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
+<style>
+html, body { 
+	height: 100%; 
+	width: 100%; 
+	margin: 0; 
+	padding: 0; 
+	border: 0; 
+	overflow: hidden; }
+iframe {
+	position: absolute; 
+	left: 50%; 
+	width: 40%;
+	top: -140px;
+	height: 150%;
+	margin: 0; padding: 0; border: 0;
+	overflow: hidden;
+}
+body {
+	background: #024;
+	color: #fff;
+}
+.pp {
+  display: inline-block;
+  padding-left: 5px;
+  font-size: 16px;
+}
+#container {
+	position: absolute; 
+	left: 0%; 
+	width: 50%; 
+	height: 100%;
+	margin: 0; padding: 0; border: 0;
+	text-align: center;
+	font: 300 20px/0.95 Tahoma;
+}
+#nownext {
+	padding: 10px 30px;
+}
+#logo {
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	margin-left: -121px;
+}
+#clock {
+	position: absolute;
+	bottom: 140px;
+	width: 100%;
+	text-align: center;
+}
+.start {
+	padding-bottom: 10px;
+	font-size: 24px;
+}
+.event {
+	font-weight: 500;
+	font-size: 36px;
+	padding-bottom: 10px
+}
+h1 {
+	font-size: 24px;
+	font-weight: 700;
+}
+#clock {
+	font-size: 32px;
+	font-weight: 700;
+}
+.venue {
+	font-size: 24px;
+	margin-bottom: 20px;
+}
+#nextcontainer {
+	opacity: 0.5;
+}
+#hnext {
+	padding-top: 25px;
+}
+#hashtag {
+	position: absolute;
+	transform: rotate(90deg);
+	top: 150px;
+	right: 10px;
+	font: 400 36px Tahoma;  
+}
+#twitter img {
+	position: absolute;
+	right: 65px;
+	top: 20px;
+	display: block;
+}
+.Monday {
+	color: #12b2aa;
+}
+.Tuesday {
+	color: #dd6032;
+}
+.Wednesday {
+	color: #31b4e3;
+}
+</style>
+</head>
+<body>
+	<div id="hashtag">#RES2018</div>
+	<div id="twitter"><img src="twitter.svg" width="50"></div>
+	<div id="container">
+		<div id="clock"></div>
+		<img id="logo" src="logos.svg" width="242">
+		<div id="nownext">
+			<div id="nowcontainer">
+				<h1 id="hnow">Now</h1>
+				<div id="now"></div>
+			</div>
+			<div id="nextcontainer">
+				<h1 id="hnext">Next</h1>
+				<div id="next"></div>
+			</div>
+		</div>
+	</div>
+	<iframe scrolling="no" id="tweetframe" src="http://tweet-search-stream.gimite.net/search?q=%23res2018&hl=en"></iframe>
+	<script>
+		/*
+		Lines must be chronological by start time.
+		The data format is: Day-of-week HH.MM – HH.MM: Session title @ Venue
+		The data below embellishes this with a fair amount of HTML markup.
+		*/
+		var scheduletxt = `Monday 08.45 – 10.00: <i class="fas fa-id-badge fa-xs"></i> <i class="fas fa-coffee fa-xs"></i> Registration,<br>tea & coffee @ Jubilee
+			Monday 10.00 – 11.15: <div style="width: 80px; height: 80px; border-radius: 40px; background-image: url(keynotes/dave.jpg); background-size: 80px 80px; margin: auto; margin-bottom: 10px;"></div> Sargan Lecture:<br>Dave Donaldson @ Jubilee Large Lecture Theatre<br>(and streamed to 144) <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;28</span>
+			Monday 11.15 – 11.45: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee & Fulton
+			Monday 11.45 – 13.15: General Sessions 1 @ Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;38</span>
+			Monday 13.15 – 14.15: <i class="fas fa-utensils fa-xs"></i> Buffet lunch @ Jubilee
+			Monday 14.15 – 15.45: Special Sessions A @ Jubilee & Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;31</span>
+			Monday 15.45 – 16.15: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee
+			Monday 16.15 – 17.30: <div style="width: 80px; height: 80px; border-radius: 40px; background-image: url(keynotes/maristella.jpg); background-size: 80px 80px; margin: auto; margin-bottom: 10px;"></div>EJ Lecture:<br>Maristella Botticini @ Jubilee Large Lecture Theatre<br>(and streamed to 144) <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;28</span>
+			Monday 17.30 – 18.30: <i class="fas fa-bus fa-xs"></i> Coaches to i360 @ Please follow assistants <span class="pp"><i class="fas fa-book "></i>&nbsp;p.&nbsp;16</span>
+			Monday 18.30 – 20.30: <i class="fas fa-glass-martini fa-xs"></i> Drinks reception<br>& flights @ British Airways i360 <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;16</span>
+			Tuesday 08.30 – 09.00: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee & Fulton
+			Tuesday 09.00 – 10.30: General Sessions 2 @ Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;46</span>
+			Tuesday 10.30 – 11.00: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee
+			Tuesday 11.00 – 12.30: Plenary Session:<br>The View on Brexit from Abroad @ Jubilee Large Lecture Theatre<br>(and streamed to 144) <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;30</span>
+			Tuesday 12.30 – 13.30: <i class="fas fa-utensils fa-xs"></i> Buffet lunch @ Jubilee
+			Tuesday 12.30 – 13.30: RES Annual General Meeting @ Jubilee 144
+			Tuesday 13.30 – 15.00: Special Sessions B @ Jubilee & Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;33</span>
+			Tuesday 15.00 – 15.30: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee & Fulton
+			Tuesday 15.30 – 17.00: General Sessions 3 @ Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;54</span>
+			Tuesday 17.00 – 17.30: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee
+			Tuesday 17.30 – 18.45: <div style="width: 80px; height: 80px; border-radius: 40px; background-image: url(keynotes/botond.jpg); background-size: 80px 80px; margin: auto; margin-bottom: 10px;"></div>Hahn Lecture:<br>Botond Kőszegi @ Jubilee Large Lecture Theatre <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;29</span>
+			Tuesday 18.45 – 19.30: <i class="fas fa-bus fa-xs"></i> <i class="fas fa-coffee fa-xs"></i> Coaches to The Grand @ Please follow assistants <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;17</span>
+			Tuesday 19.30 – 23:59: <i class="fas fa-glass-martini fa-xs"></i> <i class="fas fa-utensils fa-xs"></i> Gala Dinner @ The Grand <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;17</span>
+			Wednesday 08.30 – 09.00: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee & Fulton
+			Wednesday 09.00 – 10.30: General Sessions 4 @ Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;62</span>
+			Wednesday 10.30 – 11.00: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee
+			Wednesday 11.00 – 12.15: <div style="width: 80px; height: 80px; border-radius: 40px; background-image: url(keynotes/andrew.jpg); background-size: 80px 80px; margin: auto; margin-bottom: 10px;"></div>Presidential Address:<br>Andrew Chesher @ Jubilee Large Lecture Theatre<br>(and streamed to 144) <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;29</span>
+			Wednesday 12.15 – 13.15: <i class="fas fa-utensils fa-xs"></i> Buffet lunch @ Jubilee
+			Wednesday 12.15 – 13.15: Women's Committee<br>Special Session @ Jubilee Large Lecture Theatre <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;35</span>
+			Wednesday 13.15 – 14.45: Special Sessions C @ Jubilee & Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;36</span>
+			Wednesday 14.45 – 15.15: <i class="fas fa-coffee fa-xs"></i> Tea & coffee @ Jubilee & Fulton
+			Wednesday 15.15 – 16.45: General Sessions 5 @ Fulton <span class="pp"><i class="fas fa-book"></i>&nbsp;p.&nbsp;70</span>
+			Thursday 08.15 – 09.15: Registration &amp; Coffee @ Atrium
+			Thursday 09.15 – 10.00: Welcome &amp;<br>Best Paper Award @ Large Lecture Theatre
+			Thursday 10.00 – 10.10: Coffee/Tea Break @ Social Space
+			Thursday 10.10 – 11.40: Parallel Sessions I
+			Thursday 11.40 – 12.00: Coffee/Tea Break @ Social Space
+			Thursday 12.00 – 13.30: Parallel Sessions 2
+			Thursday 13.30 – 14.30: Lunch &amp; Poster Sessions @ Social Space
+			Thursday 14.30 – 15.30: <div style="width: 80px; height: 80px; border-radius: 40px; background-image: url(keynotes/alan.jpg); background-size: 80px 80px; margin: auto; margin-bottom: 10px;"></div>Keynote address:<br>L. Alan Winters @ Large Lecture Theatre
+			Thursday 15.30 – 16.00: Coffee/Tea Break @ Social Space
+			Thursday 16.00 – 18.00: Parallel Sessions 3
+			Thursday 18:00 – 20:00: Drinks reception @ Social Space`;
+
+		var daynames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday'];  // you'll need to update this
+		var schedule = scheduletxt.split('\n').map(line => {
+			var linere = /^\s*(\w+)\s+(\d+)[.:](\d+)[\s-–—]+(\d+)[.:](\d+)\s*:([^@]+)@?(.*)$/;
+			var matches = line.match(linere);
+			if (! matches) {
+				console.log(`No match for ${line}`);
+				return;
+			}
+			var [dummy, dayname, hstart, mstart, hfinish, mfinish, event, venue] = matches.map(item => item.trim());
+			venue = venue ? venue : '';
+			var day = 26 + daynames.indexOf(dayname);  // you'll need to update/improve this
+			var tstart = new Date(2018, 2, day, hstart, mstart);  // you'll need to update this, but remember January = 0 in JS
+			var tfinish = new Date(2018, 2, day, hfinish, mfinish);  // you'll need to update this
+			var sstart = `${hstart}.${mstart}`;
+			var sfinish = `${hfinish}.${mfinish}`;
+			return {dayname, tstart, tfinish, sstart, sfinish, event, venue};
+		});
+		var getNowNext = (t) => {
+			var nows = schedule.filter(item => t >= item.tstart && t < item.tfinish);
+			var lastnow = nows[nows.length - 1];
+			var firstnext = schedule.find(item => item.tstart > t);
+			var nexts = firstnext ? schedule.filter(item => item.tstart.getTime() == firstnext.tstart.getTime()) : [];
+			return {nows, nexts};
+		}
+		var eventHTML = event => `<div class="start ${event.dayname}">${event.dayname.slice(0, 3)} ${event.sstart} – ${event.sfinish}</div><div class="event">${event.event}</div><div class="venue">${event.venue}</div>`;
+		var applyHTML = (id, html) => { document.getElementById(id).innerHTML = html ? html : '—'; }
+		var padFigure = (f) => String(f).length < 2 ? '0' + f : f;
+		var update = (t) => {
+			if (! t) t = new Date();
+			var {nows, nexts} = getNowNext(t);
+			applyHTML('now', nows.map(now => eventHTML(now)).join(''));
+			applyHTML('next', nexts.map(next => eventHTML(next)).join(''));
+			applyHTML('clock', `${padFigure(t.getHours())}.${padFigure(t.getMinutes())}`);
+		}
+		var testing = location.search === '?fast';
+		if (testing) {
+			var tfake = new Date(2018, 2, 26, 8, 0);  // you'll need to update this
+			var advance = () => { 
+				tfake = new Date(tfake.getTime() + 60 * 1000);
+				if (tfake.getHours() > 21) tfake = new Date(tfake.getTime() + 8 * 3600 * 1000)
+				update(tfake);
+			}
+			var testint = setInterval(advance, 25);
+			document.getElementById('clock').addEventListener('click', () => clearInterval(testint), false);
+		} else {
+			update();
+			setInterval(update, 10 * 1000);
+		}
+
+		// styles to inject into the tweets <iframe>
+		var tweetstyles = `
+			.page { 
+				max-width: none;
+			}
+			.status-inner { 
+				padding-top: 20px; 
+				padding-bottom: 20px; 
+				border-bottom: 1px solid rgba(255, 255, 255, 0.25); 
+			}
+			.result-container { 
+				border: none; 
+				padding-top: 15px; 
+			}
+			body { 
+				font: 20px/1.2 Tahoma; 
+			}
+			body, .status-inner, .meta, .meta a { 
+				background: #024; 
+				color: #fff; 
+			}
+			a { 
+				color: #bdf; 
+			}
+			.meta { 
+				padding-top: 4px; 
+			}
+			.meta span { 
+				background: transparent !important; 
+			}
+		`;
+		var applyStyles = () => {
+			var head = frames[0].document.getElementsByTagName('head')[0];
+			var stylesheet = document.createElement('link');
+			stylesheet.rel = 'stylesheet';
+			stylesheet.href = 'data:text/css,' + escape(tweetstyles);  // IE needs this escaped
+			head.appendChild(stylesheet);
+		}
+		tweetframe.addEventListener('load', applyStyles, false);
+	</script>
+</body>
+</html>
